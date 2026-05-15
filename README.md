@@ -107,6 +107,32 @@ npm install
 npm run dev
 ```
 
+#### Voicebox 백엔드 연동
+
+브라우저 예제의 Voicebox 메뉴는 Supertonic 내장 기능이 아니라 별도 Voicebox 백엔드를 호출합니다. Vite 개발 서버는 `/voicebox-api` 요청을 기본적으로 `http://127.0.0.1:17493`으로 프록시하므로, Voicebox 기능이나 STT 메뉴를 사용하려면 먼저 해당 포트에서 Voicebox 서버가 실행 중이어야 합니다.
+
+```powershell
+git clone https://github.com/jamiepine/voicebox.git D:\Project\voicebox
+cd D:\Project\voicebox
+docker compose up -d --build
+```
+
+연결 확인:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:17493/health
+Invoke-RestMethod http://127.0.0.1:3000/voicebox-api/health
+```
+
+다른 주소의 Voicebox 서버를 사용할 때는 웹 개발 서버를 시작하기 전에 `VOICEBOX_URL`을 지정합니다.
+
+```powershell
+$env:VOICEBOX_URL = "http://127.0.0.1:17493"
+npm run dev
+```
+
+`Voicebox 서버 연결에 실패했습니다. /voicebox-api 대상 백엔드가 실행 중인지 확인하세요.` 오류는 대시보드가 문제가 아니라 `/voicebox-api`가 바라보는 Voicebox 백엔드가 꺼져 있거나 아직 준비되지 않았다는 뜻입니다.
+
 **Java 예제** ([자세히](java/))
 
 ```bash
