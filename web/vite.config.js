@@ -35,7 +35,14 @@ export default defineConfig({
   plugins: [serveRootAssets()],
   server: {
     port: 3000,
-    open: true
+    open: true,
+    proxy: {
+      '/voicebox-api': {
+        target: process.env.VOICEBOX_URL || 'http://127.0.0.1:17493',
+        changeOrigin: true,
+        rewrite: (requestPath) => requestPath.replace(/^\/voicebox-api/, '')
+      }
+    }
   },
   build: {
     target: 'esnext'

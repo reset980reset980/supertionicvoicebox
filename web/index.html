@@ -1,119 +1,419 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Supertonic 3 - Web Demo</title>
+        <title>Supertonic 3 - 음성 대시보드</title>
         <link rel="stylesheet" href="/style.css">
     </head>
     <body>
         <div class="container">
-            <h1>🎤 Supertonic 3</h1>
-            <p class="subtitle">31-language Text-to-Speech with ONNX Runtime Web</p>
+            <div class="page-header">
+                <div>
+                    <h1>Supertonic 3 음성 대시보드</h1>
+                    <p class="subtitle">Supertonic과 Voicebox를 같은 화면에서 실행하고 성능을 비교합니다</p>
+                </div>
+                <div class="header-stats">
+                    <div>
+                        <span>최고 RTF</span>
+                        <strong id="bestRtf">-</strong>
+                    </div>
+                    <div>
+                        <span>실행 수</span>
+                        <strong id="runCount">0</strong>
+                    </div>
+                    <div>
+                        <span>백엔드</span>
+                        <strong id="headerBackend">로딩 중</strong>
+                    </div>
+                </div>
+            </div>
 
             <div id="statusBox" class="status-box">
                 <div class="status-text-wrapper">
-                    <div id="statusText">ℹ️ <strong>Loading models...</strong>
-                        Please wait...</div>
+                    <div id="statusText">ℹ️ <strong>모델을 불러오는 중...</strong>
+                        잠시만 기다려 주세요.</div>
                 </div>
                 <div id="backendBadge" class="backend-badge">WebAssembly</div>
             </div>
 
+            <div class="dashboard-grid">
+                <section class="metric-panel">
+                    <div class="panel-title">실시간 성능</div>
+                    <div class="metric-grid">
+                        <div class="metric-tile">
+                            <span>최근 RTF</span>
+                            <strong id="lastRtf">-</strong>
+                        </div>
+                        <div class="metric-tile">
+                            <span>생성 시간</span>
+                            <strong id="lastGenerationTime">-</strong>
+                        </div>
+                        <div class="metric-tile">
+                            <span>오디오 길이</span>
+                            <strong id="lastAudioDuration">-</strong>
+                        </div>
+                        <div class="metric-tile">
+                            <span>처리량</span>
+                            <strong id="lastThroughput">-</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="metric-panel">
+                    <div class="panel-title">기능 구분</div>
+                    <div class="feature-split">
+                        <div>
+                            <div class="feature-group-title">Supertonic 실제 기능</div>
+                            <div id="supertonicFeatureCoverage" class="feature-grid compact"></div>
+                        </div>
+                        <div>
+                            <div class="feature-group-title">Voicebox 연결 기능</div>
+                            <div id="voiceboxFeatureCoverage" class="feature-grid compact"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
             <div class="main-content">
                 <div class="left-panel">
+                    <div class="panel-title">Supertonic TTS 실행</div>
+
                     <div class="section">
                         <div class="ref-audio-label">
-                            <label for="voiceStyleSelect">Voice Style: </label>
+                            <label for="voiceStyleSelect">음색 스타일: </label>
                             <span id="voiceStyleInfo"
-                                class="ref-audio-info">Loading...</span>
+                                class="ref-audio-info">로딩 중...</span>
                         </div>
                         <select id="voiceStyleSelect">
-                            <option value="assets/voice_styles/M1.json">Male 1 (M1)</option>
-                            <option value="assets/voice_styles/M2.json">Male 2 (M2)</option>
-                            <option value="assets/voice_styles/M3.json">Male 3 (M3)</option>
-                            <option value="assets/voice_styles/M4.json">Male 4 (M4)</option>
-                            <option value="assets/voice_styles/M5.json">Male 5 (M5)</option>
-                            <option value="assets/voice_styles/F1.json">Female 1 (F1)</option>
-                            <option value="assets/voice_styles/F2.json">Female 2 (F2)</option>
-                            <option value="assets/voice_styles/F3.json">Female 3 (F3)</option>
-                            <option value="assets/voice_styles/F4.json">Female 4 (F4)</option>
-                            <option value="assets/voice_styles/F5.json">Female 5 (F5)</option>
+                            <option value="assets/voice_styles/M1.json">남성 1 (M1)</option>
+                            <option value="assets/voice_styles/M2.json">남성 2 (M2)</option>
+                            <option value="assets/voice_styles/M3.json">남성 3 (M3)</option>
+                            <option value="assets/voice_styles/M4.json">남성 4 (M4)</option>
+                            <option value="assets/voice_styles/M5.json">남성 5 (M5)</option>
+                            <option value="assets/voice_styles/F1.json">여성 1 (F1)</option>
+                            <option value="assets/voice_styles/F2.json">여성 2 (F2)</option>
+                            <option value="assets/voice_styles/F3.json">여성 3 (F3)</option>
+                            <option value="assets/voice_styles/F4.json">여성 4 (F4)</option>
+                            <option value="assets/voice_styles/F5.json">여성 5 (F5)</option>
                         </select>
                     </div>
 
                     <div class="section">
-                        <label for="langSelect">Language:</label>
+                        <label for="langSelect">언어:</label>
                         <select id="langSelect">
-                            <option value="en" selected>English (en)</option>
+                            <option value="en" selected>영어 (en)</option>
                             <option value="ko">한국어 (ko)</option>
                             <option value="ja">日本語 (ja)</option>
                             <option value="ar">العربية (ar)</option>
-                            <option value="bg">Bulgarian (bg)</option>
-                            <option value="cs">Czech (cs)</option>
-                            <option value="da">Danish (da)</option>
-                            <option value="de">Deutsch (de)</option>
-                            <option value="el">Greek (el)</option>
-                            <option value="es">Español (es)</option>
-                            <option value="et">Estonian (et)</option>
-                            <option value="fi">Finnish (fi)</option>
-                            <option value="fr">Français (fr)</option>
-                            <option value="hi">Hindi (hi)</option>
-                            <option value="hr">Croatian (hr)</option>
-                            <option value="hu">Hungarian (hu)</option>
-                            <option value="id">Indonesian (id)</option>
-                            <option value="it">Italian (it)</option>
-                            <option value="lt">Lithuanian (lt)</option>
-                            <option value="lv">Latvian (lv)</option>
-                            <option value="nl">Dutch (nl)</option>
-                            <option value="pl">Polish (pl)</option>
-                            <option value="pt">Português (pt)</option>
-                            <option value="ro">Romanian (ro)</option>
-                            <option value="ru">Russian (ru)</option>
-                            <option value="sk">Slovak (sk)</option>
-                            <option value="sl">Slovenian (sl)</option>
-                            <option value="sv">Swedish (sv)</option>
-                            <option value="tr">Turkish (tr)</option>
-                            <option value="uk">Ukrainian (uk)</option>
-                            <option value="vi">Vietnamese (vi)</option>
+                            <option value="bg">불가리아어 (bg)</option>
+                            <option value="cs">체코어 (cs)</option>
+                            <option value="da">덴마크어 (da)</option>
+                            <option value="de">독일어 (de)</option>
+                            <option value="el">그리스어 (el)</option>
+                            <option value="es">스페인어 (es)</option>
+                            <option value="et">에스토니아어 (et)</option>
+                            <option value="fi">핀란드어 (fi)</option>
+                            <option value="fr">프랑스어 (fr)</option>
+                            <option value="hi">힌디어 (hi)</option>
+                            <option value="hr">크로아티아어 (hr)</option>
+                            <option value="hu">헝가리어 (hu)</option>
+                            <option value="id">인도네시아어 (id)</option>
+                            <option value="it">이탈리아어 (it)</option>
+                            <option value="lt">리투아니아어 (lt)</option>
+                            <option value="lv">라트비아어 (lv)</option>
+                            <option value="nl">네덜란드어 (nl)</option>
+                            <option value="pl">폴란드어 (pl)</option>
+                            <option value="pt">포르투갈어 (pt)</option>
+                            <option value="ro">루마니아어 (ro)</option>
+                            <option value="ru">러시아어 (ru)</option>
+                            <option value="sk">슬로바키아어 (sk)</option>
+                            <option value="sl">슬로베니아어 (sl)</option>
+                            <option value="sv">스웨덴어 (sv)</option>
+                            <option value="tr">튀르키예어 (tr)</option>
+                            <option value="uk">우크라이나어 (uk)</option>
+                            <option value="vi">베트남어 (vi)</option>
                         </select>
                     </div>
 
                     <div class="section">
-                        <label for="text">Text to Synthesize:</label>
+                        <label for="text">합성할 텍스트:</label>
                         <textarea id="text"
-                            placeholder="Enter the text you want to convert to speech...">This morning, I took a walk in the park, and the sound of the birds and the breeze was so pleasant that I stopped for a long time just to listen.</textarea>
+                            placeholder="음성으로 변환할 텍스트를 입력하세요...">오늘 아침 공원을 산책했는데, 새소리와 바람 소리가 너무 좋아서 한동안 멈춰 서서 들었습니다.</textarea>
                     </div>
 
                     <div class="params-grid">
                         <div class="section">
-                            <label for="totalStep">Total Steps (higher = better
-                                quality):</label>
+                            <label for="totalStep">전체 스텝 수 (높을수록 품질 우선):</label>
                             <input type="number" id="totalStep" value="8"
                                 min="1" max="50">
                         </div>
                         
                         <div class="section">
-                            <label for="speed">Speed (0.9-1.5 recommended):</label>
+                            <label for="speed">말하기 속도 (권장 0.9-1.5):</label>
                             <input type="number" id="speed" value="1.05"
                                 min="0.5" max="2.0" step="0.05">
                         </div>
 
                     </div>
 
-                    <button id="generateBtn">Generate Speech</button>
+                    <div class="params-grid">
+                        <div class="section">
+                            <label for="effectPreset">브라우저 재생 프리셋:</label>
+                            <select id="effectPreset">
+                                <option value="clean">원본</option>
+                                <option value="radio">라디오</option>
+                                <option value="deep">낮은 목소리</option>
+                                <option value="bright">밝게</option>
+                            </select>
+                        </div>
+
+                        <div class="section">
+                            <label for="benchmarkRepeats">벤치마크 반복:</label>
+                            <input type="number" id="benchmarkRepeats" value="1" min="1" max="5">
+                        </div>
+                    </div>
+
+                    <div class="button-row">
+                        <button id="generateBtn">음성 생성</button>
+                        <button id="benchmarkBtn" class="secondary-button">벤치마크</button>
+                    </div>
 
                     <div id="error" class="error"></div>
+                </div>
+
+                <div class="left-panel voicebox-panel">
+                    <div class="panel-title">Voicebox 로컬 서비스 실행</div>
+
+                    <div class="section">
+                        <label for="voiceboxBaseUrl">Voicebox 서버 URL:</label>
+                        <div class="connection-row">
+                            <input type="text" id="voiceboxBaseUrl" value="/voicebox-api">
+                            <button id="voiceboxConnectBtn" class="secondary-button">연결</button>
+                        </div>
+                        <div id="voiceboxStatus" class="panel-note">Voicebox 백엔드를 실행한 뒤 연결하세요.</div>
+                    </div>
+
+                    <div class="section">
+                        <label for="voiceboxProfileSelect">Voicebox 프로필:</label>
+                        <select id="voiceboxProfileSelect">
+                            <option value="">연결 후 불러오기</option>
+                        </select>
+                    </div>
+
+                    <div class="params-grid">
+                        <div class="section">
+                            <label for="voiceboxEngineSelect">엔진:</label>
+                            <select id="voiceboxEngineSelect">
+                                <option value="">프로필 기본값</option>
+                                <option value="qwen">Qwen3-TTS</option>
+                                <option value="qwen_custom_voice">Qwen CustomVoice</option>
+                                <option value="luxtts">LuxTTS</option>
+                                <option value="chatterbox">Chatterbox</option>
+                                <option value="chatterbox_turbo">Chatterbox Turbo</option>
+                                <option value="tada">HumeAI TADA</option>
+                                <option value="kokoro">Kokoro</option>
+                            </select>
+                        </div>
+
+                        <div class="section">
+                            <label for="voiceboxLanguageSelect">언어:</label>
+                            <select id="voiceboxLanguageSelect">
+                                <option value="ko" selected>한국어 (ko)</option>
+                                <option value="en">영어 (en)</option>
+                                <option value="ja">일본어 (ja)</option>
+                                <option value="zh">중국어 (zh)</option>
+                                <option value="de">독일어 (de)</option>
+                                <option value="fr">프랑스어 (fr)</option>
+                                <option value="ru">러시아어 (ru)</option>
+                                <option value="pt">포르투갈어 (pt)</option>
+                                <option value="es">스페인어 (es)</option>
+                                <option value="it">이탈리아어 (it)</option>
+                                <option value="ar">아랍어 (ar)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <label class="checkbox-row">
+                        <input id="voiceboxPersonality" type="checkbox">
+                        프로필 성격 적용
+                    </label>
+
+                    <div class="button-row">
+                        <button id="voiceboxSpeakBtn">Voicebox 음성 생성</button>
+                        <button id="compareBothBtn" class="secondary-button">둘 다 비교</button>
+                    </div>
                 </div>
 
                 <div class="right-panel">
                     <div id="results" class="results">
                         <div class="results-placeholder">
                             <div class="results-placeholder-icon">🎤</div>
-                            <p>Generated speech will appear here</p>
+                            <p>생성된 음성이 여기에 표시됩니다</p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <section class="voicebox-tools-panel">
+                <div class="panel-title">Voicebox 확장 기능</div>
+                <div class="voicebox-tools-grid">
+                    <div class="tool-panel">
+                        <div class="tool-title">프리셋 음성 프로필</div>
+                        <div class="params-grid">
+                            <div class="section">
+                                <label for="presetEngineSelect">프리셋 엔진:</label>
+                                <select id="presetEngineSelect">
+                                    <option value="qwen_custom_voice" selected>Qwen CustomVoice</option>
+                                    <option value="kokoro">Kokoro</option>
+                                </select>
+                            </div>
+                            <div class="section">
+                                <label for="presetVoiceSelect">프리셋 음성:</label>
+                                <select id="presetVoiceSelect">
+                                    <option value="">연결 후 불러오기</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="params-grid">
+                            <div class="section">
+                                <label for="presetProfileName">프로필 이름:</label>
+                                <input type="text" id="presetProfileName" value="Voicebox Preset">
+                            </div>
+                            <div class="section">
+                                <label for="presetProfileLanguage">언어:</label>
+                                <select id="presetProfileLanguage">
+                                    <option value="ko" selected>한국어 (ko)</option>
+                                    <option value="en">영어 (en)</option>
+                                    <option value="ja">일본어 (ja)</option>
+                                    <option value="zh">중국어 (zh)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="createPresetProfileBtn">프리셋 프로필 생성</button>
+                    </div>
+
+                    <div class="tool-panel">
+                        <div class="tool-title">음성복제 프로필</div>
+                        <div class="params-grid">
+                            <div class="section">
+                                <label for="cloneProfileName">복제 프로필 이름:</label>
+                                <input type="text" id="cloneProfileName" value="Cloned Voice">
+                            </div>
+                            <div class="section">
+                                <label for="cloneProfileLanguage">언어:</label>
+                                <select id="cloneProfileLanguage">
+                                    <option value="ko" selected>한국어 (ko)</option>
+                                    <option value="en">영어 (en)</option>
+                                    <option value="ja">일본어 (ja)</option>
+                                    <option value="zh">중국어 (zh)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="section">
+                            <label for="cloneSampleFile">참조 음성 파일:</label>
+                            <input type="file" id="cloneSampleFile" accept="audio/*">
+                        </div>
+                        <div class="section">
+                            <label for="cloneReferenceText">참조 음성 원문:</label>
+                            <textarea id="cloneReferenceText" placeholder="참조 음성에서 말한 내용을 입력하세요.">안녕하세요. 이 목소리를 참고해서 새로운 음성을 만들어 주세요.</textarea>
+                        </div>
+                        <button id="createCloneProfileBtn">복제 프로필 생성/샘플 등록</button>
+                    </div>
+
+                    <div class="tool-panel">
+                        <div class="tool-title">STT 받아쓰기</div>
+                        <div class="params-grid">
+                            <div class="section">
+                                <label for="sttLanguageSelect">언어:</label>
+                                <select id="sttLanguageSelect">
+                                    <option value="">자동 감지</option>
+                                    <option value="ko">한국어 (ko)</option>
+                                    <option value="en">영어 (en)</option>
+                                    <option value="ja">일본어 (ja)</option>
+                                    <option value="zh">중국어 (zh)</option>
+                                </select>
+                            </div>
+                            <div class="section">
+                                <label for="sttModelSelect">Whisper 모델:</label>
+                                <select id="sttModelSelect">
+                                    <option value="base" selected>base (빠름)</option>
+                                    <option value="small">small</option>
+                                    <option value="medium">medium</option>
+                                    <option value="large">large</option>
+                                    <option value="turbo">turbo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="section">
+                            <label for="sttAudioFile">전사할 오디오:</label>
+                            <input type="file" id="sttAudioFile" accept="audio/*">
+                            <div class="field-help">마이크 전사는 3~10초 녹음을 권장합니다. 최소 2초 이상 말하면 인식이 안정적입니다.</div>
+                        </div>
+                        <div class="section">
+                            <label for="micDeviceSelect">녹음 장치:</label>
+                            <select id="micDeviceSelect">
+                                <option value="">기본 마이크</option>
+                            </select>
+                        </div>
+                        <div class="button-row">
+                            <button id="startMicRecordBtn" class="secondary-button">마이크 녹음</button>
+                            <button id="stopMicRecordBtn" class="secondary-button">녹음 정지</button>
+                        </div>
+                        <div id="micRecordMonitor" class="mic-monitor" aria-live="polite">
+                            <div class="mic-monitor-header">
+                                <span id="micRecordIndicator" class="mic-indicator"></span>
+                                <span id="micRecordState">대기 중</span>
+                                <span id="micRecordTime">0.0s</span>
+                            </div>
+                            <div class="mic-level-track" aria-label="마이크 입력 레벨">
+                                <div id="micRecordLevelBar" class="mic-level-bar"></div>
+                            </div>
+                            <div id="micRecordLevelText" class="mic-level-text">입력 레벨 0%</div>
+                        </div>
+                        <div id="micRecordStatus" class="panel-note">녹음하거나 오디오 파일을 선택하세요.</div>
+                        <audio id="micRecordPreview" class="hidden" controls></audio>
+                        <button id="transcribeBtn">STT 전사 실행</button>
+                    </div>
+
+                    <div class="tool-panel">
+                        <div class="tool-title">상태/이펙트</div>
+                        <div class="button-stack">
+                            <button id="refreshVoiceboxStatusBtn" class="secondary-button">모델 상태 새로고침</button>
+                            <button id="loadEffectsBtn" class="secondary-button">이펙트 목록 불러오기</button>
+                        </div>
+                        <div id="voiceboxToolOutput" class="tool-output">연결 후 Voicebox 확장 기능 결과가 여기에 표시됩니다.</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="history-panel">
+                <div class="panel-title">성능 비교 기록</div>
+                <div class="history-table-wrap">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>제품/기능</th>
+                                <th>음색</th>
+                                <th>언어</th>
+                                <th>글자 수</th>
+                                <th>스텝</th>
+                                <th>백엔드</th>
+                                <th>오디오</th>
+                                <th>시간</th>
+                                <th>RTF</th>
+                                <th>글자/s</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr>
+                                <td colspan="11" class="empty-history">아직 실행 기록이 없습니다</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </div>
 
         <script type="module" src="/main.js"></script>
